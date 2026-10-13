@@ -13,7 +13,45 @@ Built with **FastAPI**, local **PyTorch/Transformers** classifiers, and **Google
 cd civility_ai
 ```
 
-### 2. Create your `.env` file
+### 2. Create a virtual environment (recommended)
+```bash
+python -m venv venv
+# Windows:   venv\Scripts\activate
+# Mac/Linux: source venv/bin/activate
+```
+
+### 3. Install dependencies
+```bash
+pip install -r requirements.txt
+```
+
+### 4. Download the image model
+The fine-tuned ViT checkpoint (about 328 MB) is too large for GitHub, so it is hosted on Hugging Face:
+**https://huggingface.co/pranav200621/vit-nsfw-classifier**
+
+Download it into the `models/` folder with the Hugging Face CLI:
+```bash
+pip install -U huggingface_hub
+hf download pranav200621/vit-nsfw-classifier --local-dir models
+```
+
+Or download the files manually and place them in `models/`:
+
+| File | Direct link |
+|------|-------------|
+| `vit_nsfw_model.pth` | https://huggingface.co/pranav200621/vit-nsfw-classifier/resolve/main/vit_nsfw_model.pth |
+| `class_mapping.json` | https://huggingface.co/pranav200621/vit-nsfw-classifier/resolve/main/class_mapping.json |
+
+After downloading, your folder should look like this:
+```
+models/
+├── vit_nsfw_model.pth
+└── class_mapping.json
+```
+
+> **Note:** `class_mapping.json` is also tracked in this repo. The `.pth` checkpoint is git-ignored.
+
+### 5. Create your `.env` file
 ```bash
 cp .env.example .env
 ```
@@ -21,32 +59,18 @@ Edit `.env` and paste your Gemini API key:
 ```
 GEMINI_API_KEY=your_key_here
 ```
-Place the supplied `vit_nsfw_model.pth` file in `models/`; the supplied class mapping is
-stored there as `class_mapping.json`.
-Override `IMAGE_MODEL_PATH` and `IMAGE_CLASS_MAPPING_PATH` in `.env` if you store them elsewhere.
-The large checkpoint is intentionally excluded from Git.
-Gemini is only required when a local classifier's confidence is between 40% and 65%.
-The text classifiers download their model weights from Hugging Face on first use, then run inference locally.
+- Override `IMAGE_MODEL_PATH` and `IMAGE_CLASS_MAPPING_PATH` in `.env` if you store the model files elsewhere.
+- Gemini is only required when a local classifier's confidence is between 40% and 65%.
+- The text classifiers download their model weights from Hugging Face on first use, then run inference locally.
+
 > **Get a Gemini key at:** https://aistudio.google.com/app/apikey
 
-### 3. Create virtual environment (recommended)
-```bash
-python -m venv venv
-# Windows:   venv\Scripts\activate
-# Mac/Linux: source venv/bin/activate
-```
-
-### 4. Install dependencies
-```bash
-pip install -r requirements.txt
-```
-
-### 5. Run the server
+### 6. Run the server
 ```bash
 uvicorn main:app --reload
 ```
 
-### 6. Open browser
+### 7. Open browser
 ```
 http://localhost:8000
 ```
@@ -114,6 +138,17 @@ Text is limited to 5,000 characters.
 
 ---
 
+## 🧯 Troubleshooting
+
+| Problem | Fix |
+|---------|-----|
+| Error about a missing model file at startup | Complete **step 4** and confirm `models/vit_nsfw_model.pth` exists |
+| `hf: command not found` | Download the files manually from the links in step 4, or reopen your terminal after installing `huggingface_hub` |
+| Text classifier is slow on the first request | The Hugging Face text models download on first use, so later requests are faster |
+| Gemini errors on uncertain results | Check that `GEMINI_API_KEY` is set correctly in `.env` |
+
+---
+
 ## 📁 Project Structure
 
 ```
@@ -121,19 +156,20 @@ civility_ai/
 ├── main.py
 ├── requirements.txt
 ├── .env.example
+├── .gitignore
 ├── app/
-│   ├── routes/analyze.py       # POST /api/analyze
-│   ├── services/ai_analyzer.py # Gemini Vision and text fallback
+│   ├── routes/analyze.py            # POST /api/analyze
+│   ├── services/ai_analyzer.py      # Gemini Vision and text fallback
 │   ├── services/image_classifier.py # Local ViT image/video classifier
 │   ├── services/text_classifier.py  # Local NSFW and obscenity Transformers
 │   ├── services/fallback_policy.py  # 40%-65% Gemini fallback band
-│   ├── utils/frame_extractor.py# OpenCV video frames
-│   └── models/schemas.py       # Pydantic models
+│   ├── utils/frame_extractor.py     # OpenCV video frames
+│   └── models/schemas.py            # Pydantic models
 ├── models/
-│   └── class_mapping.json      # NSFW/Neutral class IDs; checkpoint is local and git-ignored
+│   └── class_mapping.json           # NSFW/Neutral class IDs; the .pth checkpoint is downloaded from Hugging Face and git-ignored
 ├── static/
 │   ├── index.html
-│   ├── style.css               # Agentica 2.0 branded
+│   ├── style.css                    # Agentica 2.0 branded
 │   └── app.js
 ├── uploads/
 └── frames/
@@ -141,7 +177,7 @@ civility_ai/
 
 ## 🛠 Tech Stack
 - Backend: FastAPI (Python)
-- Image/video: supplied fine-tuned ViT (PyTorch)
+- Image/video: fine-tuned ViT (PyTorch), hosted on [Hugging Face](https://huggingface.co/pranav200621/vit-nsfw-classifier)
 - Text: Hugging Face NSFW and obscenity classifiers (Transformers)
 - Fallback: Google Gemini 2.5 Flash for uncertain local results
 - Video: OpenCV
