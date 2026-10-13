@@ -1,0 +1,6 @@
+MIN_GEMINI_FALLBACK_CONFIDENCE = 0.40
+MAX_GEMINI_FALLBACK_CONFIDENCE = 0.65
+
+
+def needs_gemini_fallback(confidence: float) -> bool:
+    return MIN_GEMINI_FALLBACK_CONFIDENCE <= confidence <= MAX_GEMINI_FALLBACK_CONFIDENCE

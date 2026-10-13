@@ -6,3 +6,6 @@ opencv-python-headless==4.10.0.84
 python-dotenv==1.0.1
 Pillow==10.4.0
 aiofiles==23.2.1
+numpy>=1.26,<3
+torch>=2.2,<3
+transformers>=4.44,<5
