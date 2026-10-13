@@ -4,6 +4,7 @@
 ═══════════════════════════════════════════════ */
 
 const API_URL = "/api/analyze";
+const TEXT_API_URL = "/api/analyze-text";
 
 // ── DOM References ────────────────────────────
 const $  = id => document.getElementById(id);
@@ -29,8 +30,15 @@ const jtChevron    = $("jtChevron");
 const jsonPre      = $("jsonPre");
 const jsonCopy     = $("jsonCopy");
 const btnReset     = $("btnReset");
+const mediaInput   = $("mediaInput");
+const textInputPanel = $("textInputPanel");
+const textInput    = $("textInput");
+const textCount    = $("textCount");
+const mediaMode    = $("mediaMode");
+const textMode     = $("textMode");
 
 let selectedFile = null;
+let selectedMode = "media";
 let loadingTimer = null;
 
 /* ══════════════════════════════════════════════
@@ -69,6 +77,25 @@ fpRemove.addEventListener("click", e => {
   clearFile();
 });
 
+mediaMode.addEventListener("click", () => setInputMode("media"));
+textMode.addEventListener("click", () => setInputMode("text"));
+textInput.addEventListener("input", () => {
+  textCount.textContent = `${textInput.value.length} / 5000`;
+  analyzeBtn.disabled = !textInput.value.trim();
+});
+
+function setInputMode(mode) {
+  selectedMode = mode;
+  const isMedia = mode === "media";
+  mediaInput.style.display = isMedia ? "block" : "none";
+  textInputPanel.style.display = isMedia ? "none" : "block";
+  mediaMode.classList.toggle("active", isMedia);
+  textMode.classList.toggle("active", !isMedia);
+  mediaMode.setAttribute("aria-selected", String(isMedia));
+  textMode.setAttribute("aria-selected", String(!isMedia));
+  analyzeBtn.disabled = isMedia ? !selectedFile : !textInput.value.trim();
+}
+
 function handleFileSelect(file) {
   const allowedTypes = [
     "image/jpeg", "image/jpg", "image/png", "image/webp",
@@ -106,14 +133,14 @@ function handleFileSelect(file) {
   fpMeta.textContent = `${formatSize(file.size)} · ${file.type || ext}`;
 
   filePreview.style.display = "flex";
-  analyzeBtn.disabled = false;
+  analyzeBtn.disabled = selectedMode !== "media";
 }
 
 function clearFile() {
   selectedFile = null;
   fileInput.value = "";
   filePreview.style.display = "none";
-  analyzeBtn.disabled = true;
+  analyzeBtn.disabled = selectedMode !== "media";
 }
 
 function formatSize(bytes) {
@@ -129,21 +156,27 @@ function formatSize(bytes) {
 analyzeBtn.addEventListener("click", runAnalysis);
 
 async function runAnalysis() {
-  if (!selectedFile) return;
+  if (selectedMode === "media" && !selectedFile) return;
+  if (selectedMode === "text" && !textInput.value.trim()) return;
 
   showPanel("loading");
   startLoadingAnimation();
 
   try {
-    const formData = new FormData();
-    formData.append("file", selectedFile);
-
     setStep("Uploading content...", 15);
 
-    const response = await fetch(API_URL, {
-      method: "POST",
-      body: formData,
-    });
+    let response;
+    if (selectedMode === "media") {
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+      response = await fetch(API_URL, { method: "POST", body: formData });
+    } else {
+      response = await fetch(TEXT_API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: textInput.value.trim() }),
+        });
+    }
 
     setStep("Running AI analysis...", 70);
 
@@ -175,11 +208,10 @@ async function runAnalysis() {
 function startLoadingAnimation() {
   const steps = [
     { text: "Uploading content...",           pct: 15 },
-    { text: "Reading file metadata...",       pct: 28 },
-    { text: "Extracting visual content...",   pct: 42 },
-    { text: "Sending to Gemini AI...",        pct: 58 },
-    { text: "Analyzing for harmful content...", pct: 72 },
-    { text: "Classifying categories...",      pct: 84 },
+    { text: "Running local classifiers...",    pct: 32 },
+    { text: "Checking confidence scores...",   pct: 52 },
+    { text: "Resolving uncertain content...",  pct: 68 },
+    { text: "Classifying moderation categories...", pct: 80 },
     { text: "Finalizing moderation report...", pct: 91 },
   ];
   let i = 0;
@@ -253,6 +285,18 @@ function renderVerdict(data) {
   if (data.frame_count) {
     vbConf.textContent += (confidence ? " · " : "") + `${data.frame_count} frames analyzed`;
   }
+  if (data.analysis_source) {
+    const sourceLabels = {
+      local_vit: "Local ViT",
+      local_transformers: "Local Transformers",
+      gemini_fallback: "Gemini fallback",
+    };
+    const source = sourceLabels[data.analysis_source] || data.analysis_source;
+    const localScore = data.local_model_confidence != null
+      ? ` · local ${Math.round(data.local_model_confidence * 100)}%`
+      : "";
+    vbConf.textContent += (vbConf.textContent ? " · " : "") + source + localScore;
+  }
 }
 
 function renderDescription(data) {
@@ -263,6 +307,7 @@ function renderClassification(data) {
   const cc = data.content_classification || {};
   const items = [
     { key: "nsfw",            label: "NSFW / Adult Content" },
+    { key: "vulgar",          label: "Vulgar / Obscene Language" },
     { key: "violence",        label: "Violence / Gore" },
     { key: "bullying",        label: "Bullying / Harassment" },
     { key: "hate_speech",     label: "Hate Speech" },
@@ -339,6 +384,9 @@ jsonCopy.addEventListener("click", async () => {
 
 btnReset.addEventListener("click", () => {
   clearFile();
+  textInput.value = "";
+  textCount.textContent = "0 / 5000";
+  setInputMode("media");
   // Reset JSON panel state
   jsonBody.style.display = "none";
   jtChevron.classList.remove("open");

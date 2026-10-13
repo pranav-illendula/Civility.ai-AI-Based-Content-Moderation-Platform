@@ -1,0 +1,10 @@
+.env
+__pycache__/
+*.py[cod]
+models/*.pth
+uploads/*
+frames/*
+models/*.pth
+.env
+__pycache__/
+venv/

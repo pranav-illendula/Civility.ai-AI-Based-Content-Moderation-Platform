@@ -426,6 +426,71 @@ body {
   font-weight: 400;
 }
 
+.input-mode-toggle {
+  display: flex;
+  gap: 8px;
+  margin: 0 0 20px;
+  padding: 5px;
+  width: fit-content;
+  background: var(--bg3);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+}
+
+.input-mode {
+  padding: 9px 16px;
+  color: var(--text-muted);
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  font: 600 12px var(--font-body);
+  cursor: pointer;
+}
+
+.input-mode.active {
+  color: #fff;
+  background: var(--purple);
+}
+
+.text-input-panel { margin-bottom: 4px; }
+
+.text-input-label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+#textInput {
+  display: block;
+  width: 100%;
+  min-height: 180px;
+  padding: 16px;
+  color: var(--text);
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font: 14px/1.6 var(--font-body);
+  resize: vertical;
+}
+
+#textInput:focus {
+  outline: 2px solid var(--purple);
+  outline-offset: 2px;
+}
+
+#textInput::placeholder { color: var(--text-dim); }
+
+.text-input-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 8px;
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
 /* Drop Zone */
 .drop-zone {
   border: 2px dashed rgba(115, 83, 246, 0.3);
@@ -1131,4 +1196,5 @@ body {
   .vb-text { font-size: 22px; }
   .footer-inner { justify-content: center; text-align: center; }
   .footer-right { display: none; }
+  .text-input-meta { flex-direction: column; }
 }

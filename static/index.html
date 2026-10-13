@@ -48,11 +48,10 @@
       <div class="hero-eyebrow">AI-Powered Moderation</div>
       <h1 class="hero-title">DETECT.<br>PROTECT.<br>MODERATE.</h1>
       <p class="hero-desc">
-        Upload any image or video and get instant AI analysis for harmful content — 
-        NSFW, violence, bullying, hate speech, and more. Powered by Claude claude-sonnet-4-20250514.
+        Analyze images, videos, and pasted text for NSFW or harmful content with local AI and Gemini fallback.
       </p>
       <div class="hero-stats">
-        <div class="stat"><span class="stat-val">5</span><span class="stat-label">Content Categories</span></div>
+        <div class="stat"><span class="stat-val">6</span><span class="stat-label">Content Categories</span></div>
         <div class="stat-div"></div>
         <div class="stat"><span class="stat-val">~3s</span><span class="stat-label">Avg. Analysis Time</span></div>
         <div class="stat-div"></div>
@@ -90,11 +89,17 @@
       <div class="panel-header">
         <div class="panel-number">01</div>
         <div>
-          <h2 class="panel-title">Upload Content</h2>
-          <p class="panel-subtitle">Drag & drop or browse — images and videos accepted</p>
+          <h2 class="panel-title">Moderate Content</h2>
+          <p class="panel-subtitle">Analyze an image, video, or pasted sentence</p>
         </div>
       </div>
 
+      <div class="input-mode-toggle" role="tablist" aria-label="Content type">
+        <button class="input-mode active" id="mediaMode" type="button" role="tab" aria-selected="true">Image or Video</button>
+        <button class="input-mode" id="textMode" type="button" role="tab" aria-selected="false">Pasted Text</button>
+      </div>
+
+      <div id="mediaInput">
       <div class="drop-zone" id="dropZone">
         <div class="dz-inner">
           <div class="dz-icon">
@@ -131,6 +136,13 @@
           </svg>
         </button>
       </div>
+      </div>
+
+      <div class="text-input-panel" id="textInputPanel" style="display:none;">
+        <label class="text-input-label" for="textInput">Sentence to check</label>
+        <textarea id="textInput" maxlength="5000" placeholder="Paste a sentence to check for NSFW or vulgar content..."></textarea>
+        <div class="text-input-meta"><span>Text is classified locally first; uncertain results go to Gemini.</span><span id="textCount">0 / 5000</span></div>
+      </div>
 
       <button class="btn-analyze" id="analyzeBtn" disabled>
         <span class="btn-label">Analyze Content</span>
@@ -158,7 +170,7 @@
         <h2 class="loader-title">Analyzing Content</h2>
         <p class="loader-step" id="loaderStep">Initializing...</p>
         <div class="loader-bar"><div class="loader-fill" id="loaderFill"></div></div>
-        <p class="loader-sub">Gemini 1.5 Flash Vision is examining your content</p>
+        <p class="loader-sub">Local models run first; Gemini checks uncertain results.</p>
       </div>
     </section>
 
@@ -251,7 +263,7 @@
           <path d="M14 2V5H11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
           <path d="M2 14V11H5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
-        Analyze Another File
+        Analyze Another Item
       </button>
 
     </section>
@@ -269,8 +281,8 @@
   <footer class="footer">
     <div class="footer-inner">
       <div class="footer-logo">Civility<span>AI</span></div>
-      <div class="footer-center">Built for Agentica 2.0 Hackathon · Team 34 · Powered by Gemini 1.5 Flash</div>
-      <div class="footer-right">FastAPI + Python + Gemini AI</div>
+      <div class="footer-center">Built for Agentica 2.0 Hackathon · Team 34 · Local AI + Gemini 2.5 Flash Fallback</div>
+      <div class="footer-right">FastAPI + PyTorch + Transformers</div>
     </div>
   </footer>
 
